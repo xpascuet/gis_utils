@@ -6,15 +6,16 @@ file2 = r"D:\Documents\Gencat\SIGPAC\2021\comunals\comunals_21.shp"
 
 def intersection(file1, file2, result_file, col_to_keep1='all', col_to_keep2='all'):
     """
-    
+    Intersect two vectorial files 
+	
     Parameters
     ----------
     file1 : string
-        DESCRIPTION.
+        Vectorial file. Can be, GeoJson, shape, and all drivers suppoerted by fiona
     file2 : string
-        DESCRIPTION.
-    result_file : TYPE
-        DESCRIPTION.
+        Vectorial file. Can be, GeoJson, shape, and all drivers suppoerted by fiona
+    result_file : GeoJson
+        File to export the resulting intersection
     col_to_keep1 : list of strings, optional
         List of the columns(fields) wanted to keep from file 1. The default is 'all'.
     col_to_keep2 : list of strings, optional
@@ -22,7 +23,8 @@ def intersection(file1, file2, result_file, col_to_keep1='all', col_to_keep2='al
 
     Returns
     -------
-    None.
+   intersect_df: Geodataframe
+		The resulting intersection
 
     """
     intersect = []
@@ -47,7 +49,6 @@ def intersection(file1, file2, result_file, col_to_keep1='all', col_to_keep2='al
         while col in cols1:
             col = col + "_2"
         cols2.append(col)
-    #cols2 = [col if col not in cols1 else (col + "_2") for col in cols2o]
     # Intersection
     for i1, r1 in file1_df.iterrows():
         if r1["geometry"].is_valid:
@@ -57,8 +58,8 @@ def intersection(file1, file2, result_file, col_to_keep1='all', col_to_keep2='al
                                       **{i: r1[i] for i in cols1}, **{i: r2[z] for i, z in zip(cols2, cols2o)},
                                       **{"area": r1["geometry"].intersection(r2["geometry"]).area}})
 
-    intersect_df = gpd.GeoDataFrame(intersect)
+    intersect_df = gpd.GeoDataFrame(intersect, crs=file1_df.crs)
     intersect_df.to_file(result_file, driver='GeoJSON')
-
-
+	return intersect_df
+	
 intersection(file1, file2, "result.geojson")
